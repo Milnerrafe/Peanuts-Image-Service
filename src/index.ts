@@ -1,26 +1,17 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+interface Env {
+	ASSETS: Fetcher;
+}
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
+	async fetch(request, env): Promise<Response> {
 		const url = new URL(request.url);
-		switch (url.pathname) {
-			case '/message':
-				return new Response('Hello, World!');
-			case '/random':
-				return new Response(crypto.randomUUID());
-			default:
-				return new Response('Not Found', { status: 404 });
+		if (url.pathname.startsWith('/random')) {
+			let random = Math.floor(Math.random() * 10);
+			let newurl = `https://peanuts.intelligencesystems.org/${random}.avif`;
+			let modifiedRequest = new Request(newurl, request);
+			console.log(modifiedRequest);
+			return env.ASSETS.fetch(modifiedRequest);
 		}
+		return env.ASSETS.fetch(request);
 	},
 } satisfies ExportedHandler<Env>;
